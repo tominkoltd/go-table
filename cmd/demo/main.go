@@ -9,6 +9,7 @@ import (
 
 func main() {
 	w, _, _ := term.GetSize(int(os.Stdout.Fd()))
+	
 
 	workersTable := table.Table{Width: w}
 
