@@ -1,4 +1,4 @@
-# 🧱 **TableWriter — A Lightweight ANSI Table Renderer for Go**
+# 🧱 **Table Go Module — A Lightweight ANSI Table Renderer for Go**
 
 A fast, dependency-free, Unicode-aware, ANSI-styled table renderer for terminal applications.
 Designed for simplicity, predictable output, and fully customizable formatting.
@@ -6,7 +6,6 @@ Designed for simplicity, predictable output, and fully customizable formatting.
 Useful for:
 
 - CLI apps
-- Process managers
 - Debuggers
 - Monitoring tools
 - Log viewers
@@ -31,10 +30,8 @@ No external libraries. No magic. 100% Go.
 ## 📦 Installation
 
 ```
-go get github.com/yourusername/table
+go get github.com/tominkoltd/go-table
 ```
-
-(Replace with your actual repo path.)
 
 ## 🚀 Quick Example
 
@@ -44,7 +41,7 @@ package main
 import (
     "fmt"
     "os"
-    "github.com/yourusername/table"
+    "github.com/tominkoltd/go-table"
     term "golang.org/x/term"
 )
 
@@ -77,8 +74,8 @@ func main() {
 ┏━━━━━━━━┯━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃  PID   │   Amount │      Description       ┃
 ┣━━━━━━━━┿━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃   1    │    £45.33 │ hello world            ┃
-┃   3    │   £986.00 │ some text              ┃
+┃   1    │   £45.33 │ hello world            ┃
+┃   3    │  £986.00 │ some text              ┃
 ┗━━━━━━━━┷━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━┛
 ```
 
@@ -222,4 +219,4 @@ This library is:
 
 ## 📝 License
 
-MIT License (or whichever you choose)
+MIT License
