@@ -11,30 +11,31 @@ func main() {
 	w, _, _ := term.GetSize(int(os.Stdout.Fd()))
 	
 
-	workersTable := table.Table{Width: w}
+	workersTable := table.Table{Width: w, DrawHeader: true, BorderColor: 6}
 
 	workersTable.Fields = append(workersTable.Fields, table.Field{
 		Caption			: "PID",
 		Flex			: 1,
-		Align			: "right",
+		Align			: "center",
+		Color			: 11,
 	})
 	workersTable.Fields = append(workersTable.Fields, table.Field{
 		Caption			: "Amount",
 		Flex			: 1,
 		Align			: "right",
 		Prefix			: "£",
+		PrefixColor		: 11,
 		IsNumber		: true,
 		DecimalPlaces	: 2,
-		Effects			: []table.Effect{
-			{
-				Color		: 31,
-				Effect		: table.EffectBold | table.EffectBlink,
-			},
-		},
+		Effect			: table.EffectBold,
+	})
+	workersTable.Fields = append(workersTable.Fields, table.Field{
+		Caption			: "Description",
+		Flex			: 2,
 	})
 
-	workersTable.Push("1", "45")
-	workersTable.Push("3", "986")
+	workersTable.Push("1", "45.334", "hjhgjhJHgjkh k hjcsbvlghj dsf")
+	workersTable.Push("3", table.Cell{Data: "986", Color: 25})
 
 	tbl := workersTable.Draw()
 
