@@ -1,85 +1,69 @@
-# 🧱 **Table Go Module — A Lightweight ANSI Table Renderer for Go**
+# 🧱 Table Go Module — A Lightweight ANSI Table Renderer for Go
+**Version 0.3**  
+https://ko-fi.com/vanthomas ❤️
 
-A fast, dependency-free, Unicode-aware, ANSI-styled table renderer for terminal applications.
+A fast, dependency-free, Unicode-aware, ANSI-styled table renderer for terminal applications.  
 Designed for simplicity, predictable output, and fully customizable formatting.
 
 Useful for:
 
-- CLI apps
-- Debuggers
-- Monitoring tools
-- Log viewers
-- Anything that needs **clean terminal tables** with **colors + Unicode**
+- CLI apps  
+- Debuggers  
+- Monitoring dashboards  
+- Log/worker supervisors  
+- Live-updating tables (NEW in v0.3)  
+- Anything needing clean colored terminal tables  
 
 No external libraries. No magic. 100% Go.
 
+---
+
 ## ✨ Features
 
-- **Simple declarative column definitions**
-- **Automatic flexible column sizing (`Flex` / `Width`)**
-- **Clean ANSI colors + background + effects (bold, underline, etc.)**
-- **Per-prefix and per-suffix styling**
-- **Unicode-safe alignment** (`č, ž, ä`, box-drawing chars, etc.)
-- **Number formatting with decimal rounding**
-- **Pure Go, zero dependencies**
-- **User-friendly API (`Push(...)`) with auto type handling**
-- **Nice Unicode borders (┏━┯━ etc.)**
-- **Optional header rendering**
-- **Works perfectly with full-width terminals**
+- Simple declarative column definitions  
+- Automatic flexible column sizing (`Flex` / `Width`)  
+- ANSI colors + effects (bold, underline, reverse, etc.)  
+- Per-prefix and per-suffix styling  
+- Unicode-safe alignment  
+- Number formatting with rounding  
+- Pure Go, zero dependencies  
+- User-friendly `Push(...)` API  
+- Beautiful Unicode borders  
+- Optional header drawing  
+- Stable terminal width handling  
 
-## 📦 Installation
+### 🔥 New in v0.3
 
-```
-go get github.com/tominkoltd/go-table
-```
+- **Live table redraw** using ANSI cursor-up (`Draw(true)`)  
+- **Pointer-based cell updates** (mutate cell → table updates automatically)  
+- **`Draw()` = normal output, `Draw(true)` = redraw mode**  
+- Flicker-free refreshing without clearing lines  
+- Perfect for worker dashboards, counters, animations, etc.
 
-## 🚀 Quick Example
+Example usage of the new feature:
 
 ```go
-package main
+cc := &table.Cell{Data: "986", Color: 25}
 
-import (
-    "fmt"
-    "os"
-    "github.com/tominkoltd/go-table"
-    term "golang.org/x/term"
-)
+workersTable.Push("1", "45.334", "normal row")
+workersTable.Push("3", cc)
 
-func main() {
-    w, _, _ := term.GetSize(int(os.Stdout.Fd()))
-
-    workers := table.Table{
-        Width:      w,
-        DrawHeader: true,
-        BorderColor: 6,
-    }
-
-    workers.Fields = []table.Field{
-        {Caption: "PID", Flex: 1, Align: "center", Color: 11},
-        {Caption: "Amount", Flex: 1, Align: "right", Prefix: "£",
-         PrefixColor: 11, IsNumber: true, DecimalPlaces: 2, Effect: table.EffectBold},
-        {Caption: "Description", Flex: 2},
-    }
-
-    workers.Push("1", "45.334", "hello world")
-    workers.Push("3", table.Cell{Data: "986", Color: 25}, "some text")
-
-    fmt.Println(workers.Draw())
+for i := 0; i < 10; i++ {
+    cc.Data = strconv.Itoa(i)
+    fmt.Println(workersTable.Draw(true))
+    time.Sleep(500 * time.Millisecond)
 }
 ```
 
-### Output
+---
 
-```
-┏━━━━━━━━┯━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃  PID   │   Amount │      Description       ┃
-┣━━━━━━━━┿━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃   1    │   £45.33 │ hello world            ┃
-┃   3    │  £986.00 │ some text              ┃
-┗━━━━━━━━┷━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━┛
+## 📦 Installation
+
+```bash
+go get github.com/tominkoltd/go-table
 ```
 
-(Colors hidden in GitHub preview.)
+---
 
 ## 🛠 Field Options
 
@@ -108,114 +92,107 @@ type Field struct {
 }
 ```
 
-### Highlight: Number Formatting
+Supports:
 
-Automatically rounds + formats numbers:
+- captions / headers  
+- flexible or fixed widths  
+- left / right / center alignment  
+- foreground + background colors  
+- ANSI text effects  
+- numeric mode with decimal rounding  
+- per-column prefixes and suffixes (e.g. currency)
 
-```go
-{ Caption: "Amount", IsNumber: true, DecimalPlaces: 2 }
-```
+---
 
-- `"45.3339"` → `"45.33"`
-- `"986"` → `"986.00"`
+## 🎨 ANSI Effects
 
-## 🖌 ANSI Styling
+Bitmask flags:
 
-Built-in bitmask effects:
+- `EffectBold`  
+- `EffectDim`  
+- `EffectItalic`  
+- `EffectUnderline`  
+- `EffectBlink`  
+- `EffectReverse`  
+- `EffectStrikethrough`  
+- `EffectOverline`  
+- `EffectDoubleUnderline`  
 
-```
-EffectBold
-EffectDim
-EffectItalic
-EffectUnderline
-EffectBlink
-EffectReverse
-EffectStrikethrough
-EffectOverline
-EffectDoubleUnderline
-```
-
-Use them like:
+Combine with OR, for example:
 
 ```go
 Effect: table.EffectBold | table.EffectUnderline
 ```
 
-## 🎨 Colors
+---
 
-You can color:
-
-- fields
-- cells
-- prefixes
-- suffixes
-- headers
-- borders
-
-All using 256-color ANSI:
-
-```go
-Color: 11
-BackgroundColor: 0
-BorderColor: 6
-```
-
-## 📐 Unicode-Safe Alignment
-
-`drawField()` uses `[]rune` internally:
-
-- Correctly handles `č, ď, ž, ä`
-- Works with box drawing (`┏━┯┓`)
-- No external dependencies
-
-## 📤 API
+## 📤 API Overview
 
 ### Push rows
 
 ```go
 table.Push("1", "45.33", "description")
 table.Push(table.Cell{Data: "999", Color: 12})
+table.Push(&table.Cell{Data: "986", Color: 25})
 ```
 
-You can mix raw values and styled cells.
+You can mix raw values and styled cells, including pointers for live updates.
 
 ### Draw the table
 
 ```go
-output := table.Draw()
+output := table.Draw()      // normal render
+output := table.Draw(true)  // redraw mode (moves cursor up)
 fmt.Println(output)
 ```
 
-## 🧩 Roadmap
+- `Draw()`  
+  - Renders the table normally (no cursor movement).
 
-- Group support (`Group.Push`, headers, totals)
-- Custom border themes (ASCII, light, heavy)
-- Multi-line / wrapping cells
-- Per-column min/max widths
-- Automatic numeric detection
-- Sorting by field/group
-- Row separators
-- Markdown / CSV export modes
-- Emoji width handling (optional)
+- `Draw(true)`  
+  - Moves the cursor up by the number of lines drawn previously  
+  - Allows in-place redraw of the same table area  
+
+---
+
+## 🧩 Typical Use Cases
+
+- Worker / process overviews  
+- Queue / job statistics  
+- Live counters and metrics  
+- CLI dashboards and status pages  
+- Anywhere you’d otherwise spam `fmt.Println` but want it pretty
+
+---
 
 ## 💬 Why Another Tablewriter?
 
-Because existing Go table libraries are:
+Many existing Go table libraries are:
 
-- heavy
-- verbose
-- full of `.SetXxx()` chains
-- not Unicode-safe
-- not ANSI-clean
-- too big for small/medium CLI apps
+- heavy  
+- verbose  
+- full of `.SetXxx()` chains  
+- not Unicode-safe  
+- not ANSI-clean  
+- not designed for live redraw
 
 This library is:
 
-- tiny
-- dependency-free
-- predictable
-- beautifully configurable
-- perfect for real CLI applications
+- tiny  
+- dependency-free  
+- predictable  
+- ANSI-focused  
+- built for real-world CLI apps
+
+---
+
+## 💖 Support Development
+
+If this library saves you time or looks nice in your terminal:
+
+👉 https://ko-fi.com/vanthomas
+
+---
 
 ## 📝 License
 

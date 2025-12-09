@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"golang.org/x/term"
+	"time"
+	"strconv"
 )
 
 func main() {
@@ -34,10 +36,15 @@ func main() {
 		Flex			: 2,
 	})
 
+	cc := &table.Cell{Data: "986", Color: 25}
+	
 	workersTable.Push("1", "45.334", "hjhgjhJHgjkh k hjcsbvlghj dsf")
-	workersTable.Push("3", table.Cell{Data: "986", Color: 25})
+	workersTable.Push("3", cc)
 
-	tbl := workersTable.Draw()
-
-	fmt.Println(tbl)
+	for i:=0; i < 10; i++ {
+		cc.Data=strconv.Itoa(i)
+		tbl := workersTable.Draw(true)
+		fmt.Println(tbl)
+		time.Sleep(500 * time.Millisecond)
+	}
 }

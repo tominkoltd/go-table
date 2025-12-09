@@ -1,3 +1,19 @@
+/*#############################################
+# go-table v0.3
+# ANSI-based table renderer for terminal UIs
+#
+# New in v0.3:
+# - Live redraw support using ANSI cursor-up
+#   (Draw(true) moves cursor up by previously
+#    drawn line count for flicker-free refresh)
+#
+# - Pointer-based Cell updates:
+#   Change cell.Data and redraw instantly.
+#
+# Author: Thomas Webb / Tominko Ltd.
+# Ko-fi: https://ko-fi.com/vanthomas
+#############################################*/
+
 package table
 
 import (
@@ -52,7 +68,7 @@ type Field struct {
 
 type Group struct {
 	Caption			string
-	Data			[][]Cell
+	Data			[][]*Cell
 	SortBy			string
 	SortAsc			bool
 	HeadColor		int
@@ -64,13 +80,14 @@ type Table struct {
 	Width			int
 	Fields			[]Field
 	Groups			[]Group
-	Data			[][]Cell
+	Data			[][]*Cell
 	HeadColor		int
 	HeadBackground	int
 	HeadEffect		int
 	DrawHeader		bool
 	BorderColor		int
 	BackgroundColor int
+	drawnLines		int
 }
 
 type Cell struct {
@@ -80,48 +97,67 @@ type Cell struct {
 	Effect			int
 }
 
+func (t *Table) Clear() {
+	t.Data = nil
+}
+
 func (t *Table) Push(data ...any) {
-	row := make([]Cell, len(t.Fields))
+	row := make([]*Cell, len(t.Fields))
 	for i, v := range data {
 		switch cell := v.(type) {
 			case Cell:
-				row[i] = cell
+				c := cell
+				row[i] = &c
 			case *Cell:
-				row[i] = *cell
+				row[i] = cell
 			default:
-				row[i] = Cell{
+				c := Cell{
 					Data: fmt.Sprint(v), 
 					Color: 0, 
 					BackgroundColor: 0, 
 					Effect: 0, 
 				}
+				row[i] = &c
 		}
 	}
 	t.Data = append(t.Data, row)
 }
 
 func (g *Group) Push(data ...any) {
-	row := make([]Cell, len(data))
+	row := make([]*Cell, len(data))
 	for i, v := range data {
 		switch cell := v.(type) {
 			case Cell:
-				row[i] = cell
+				c := cell
+				row[i] = &c
 			case *Cell:
-				row[i] = *cell
+				row[i] = cell
 			default:
-				row[i] = Cell{
+				c := Cell{
 					Data: fmt.Sprint(v), 
 					Color: 0, 
 					BackgroundColor: 0, 
 					Effect: 0, 
 				}
+				row[i] = &c
 		}
 	}
 	g.Data = append(g.Data, row)
 }
 
 func calculateRowDrawWidths(t *Table) {
-	usedSpace := 0
+	usedSpace := 0	cc := &table.Cell{Data: "986", Color: 25}
+	
+	workersTable.Push("1", "45.334", "hjhgjhJHgjkh k hjcsbvlghj dsf")
+	workersTable.Push("3", cc)
+
+	for i:=0; i < 10; i++ {
+		cc.Data=strconv.Itoa(i)
+		tbl := workersTable.Draw(true)
+		fmt.Println(tbl)
+		time.Sleep(500 * time.Millisecond)
+	}
+
 	totalFlex := 0
 	flexFields := 0
 	for _, f := range t.Fields {
@@ -161,7 +197,7 @@ func calculateRowDrawWidths(t *Table) {
 	t.Fields[0].drawWidth += diff
 }
 
-func (t *Table) Draw() string {
+func (t *Table) Draw(flag ...bool) string {
 	if len(t.Fields) == 0 {
 		return ""
 	}
@@ -170,6 +206,11 @@ func (t *Table) Draw() string {
 	calculateRowDrawWidths(t)
 	
 	var table bytes.Buffer
+
+	if len(flag) > 0 && t.drawnLines > 0 {
+		// remove previous lines
+		table.WriteString("\033[" + strconv.Itoa(t.drawnLines) + "A")
+	}
 
 	// table top border
 	table.Write(getAnsi(t.BorderColor, t.BackgroundColor, 0))
@@ -201,6 +242,9 @@ func (t *Table) Draw() string {
 		}
 		table.Truncate(table.Len() - len("┿━"))
 		table.WriteString("┫\n")
+		t.drawnLines=len(t.Data)+5
+	} else {
+		t.drawnLines=len(t.Data)+3
 	}
 
 	// groups TODO
@@ -211,6 +255,9 @@ func (t *Table) Draw() string {
 		for f := range t.Fields {
 			fg := t.Fields[f].Color
 			
+			if t.Data[i][f] == nil {
+				t.Data[i][f] = &Cell{}
+			}
 			if t.Data[i][f].Color > 0 {
 				fg = t.Data[i][f].Color
 			}
